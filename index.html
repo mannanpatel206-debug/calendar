@@ -88,17 +88,17 @@ header{background:linear-gradient(135deg,var(--navy-900) 0%,var(--navy-800) 50%,
 /* MAIN */
 .main-area{flex:1;overflow-y:auto;overflow-x:hidden;background:var(--surface);position:relative}
 .calendar-grid{display:grid;grid-template-columns:52px repeat(7,1fr);min-width:680px}
-.time-corner{background:#fff;border-right:1px solid #222;border-bottom:2px solid #222;position:sticky;top:0;z-index:10}
-.day-header{background:#fff;border-bottom:2px solid #222;border-right:1px solid #222;padding:8px 4px;text-align:center;position:sticky;top:0;z-index:10}
+.time-corner{background:#fff;border-right:1px solid #dadce0;border-bottom:2px solid #dadce0;position:sticky;top:0;z-index:10}
+.day-header{background:#fff;border-bottom:2px solid #dadce0;border-right:1px solid #dadce0;padding:8px 4px;text-align:center;position:sticky;top:0;z-index:10}
 .day-name{font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase}
 .day-date{font-size:20px;font-weight:700;color:var(--navy-800);line-height:1.2;margin-top:2px}
 .day-header.today .day-date{background:var(--teal-500);color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:2px auto 0;font-size:16px}
-.time-col{border-right:1px solid #222;background:#fff}
-.time-slot{height:56px;border-bottom:1px solid #222;display:flex;align-items:flex-start;padding-top:4px;padding-right:5px;justify-content:flex-end}
+.time-col{border-right:1px solid #dadce0;background:#fff}
+.time-slot{height:56px;border-bottom:1px solid #dadce0;display:flex;align-items:flex-start;padding-top:4px;padding-right:5px;justify-content:flex-end}
 .time-label{font-size:9px;color:var(--text-muted);font-weight:500;white-space:nowrap}
-.day-col{border-right:1px solid #222;position:relative;background:#fff}
+.day-col{border-right:1px solid #dadce0;position:relative;background:#fff}
 .day-col:last-child{border-right:none}
-.hour-cell{height:56px;border-bottom:1px solid #222;position:relative;cursor:pointer;transition:background .1s}
+.hour-cell{height:56px;border-bottom:1px solid #dadce0;position:relative;cursor:pointer;transition:background .1s}
 .hour-cell:hover{background:var(--teal-50)}
 .half-line{position:absolute;top:50%;left:0;right:0;border-top:1px dashed rgba(0,179,179,.13)}
 
@@ -172,8 +172,9 @@ header{background:linear-gradient(135deg,var(--navy-900) 0%,var(--navy-800) 50%,
 .color-controls{display:flex;flex-direction:column;gap:8px;flex:1;min-width:120px}
 .brightness-wrap{display:flex;flex-direction:column;gap:3px}
 .brightness-label{font-size:10px;color:var(--text-muted);font-weight:600}
-#brightnessSlider{width:100%;height:6px;border-radius:3px;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none}
-#brightnessSlider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--teal-500);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input[type=range]{width:100%;height:6px;border-radius:3px;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background:linear-gradient(to right,#3fcfcf,#1565a8)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--teal-500);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--teal-500);cursor:pointer}
 .hex-row{display:flex;align-items:center;gap:7px}
 .hex-preview{width:28px;height:28px;border-radius:6px;border:2px solid var(--border);flex-shrink:0}
 .hex-input{flex:1;border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;font-family:'Inter',sans-serif;font-weight:600;outline:none;background:var(--surface)}
@@ -451,10 +452,11 @@ function tryFirebase(){
       document.getElementById('syncLabel').textContent=c?'Live sync':'Offline';
       useLocal=!c;
     });
-    eventsRef.on('value',snap=>{events=Object.values(snap.val()||{});renderGrid()});
+    eventsRef.on('value',snap=>{const d=snap.val();events=d?Object.values(d):[];renderGrid();renderCategories();});
     catsRef.on('value',snap=>{
       const data=snap.val();
-      if(data){categories=Object.values(data);renderCategories();}
+      categories=data?Object.values(data):[{id:'cat_study',name:'Study',color:'#1565a8',visible:true},{id:'cat_stretch',name:'Stretch',color:'#00b4b4',visible:true},{id:'cat_gym',name:'Gym',color:'#2e7d32',visible:true},{id:'cat_dance',name:'Dance',color:'#e91e8c',visible:true},{id:'cat_break',name:'Break',color:'#e65100',visible:true},{id:'cat_plan',name:'Planning',color:'#6a1b9a',visible:true}];
+      renderCategories();
     });
     presenceRef.on('value',snap=>renderOnlineUsers(snap.val()||{}));
     useLocal=false;
@@ -493,23 +495,7 @@ let categories=[
   {id:'cat_plan',name:'Planning',color:'#6a1b9a',visible:true},
 ];
 
-let events=[
-  {id:'ev1',title:'Morning Stretch',days:[0,1,2,3,4,5,6],start:'08:30',end:'09:00',color:'#00b4b4',catId:'cat_stretch',note:'',repeat:'weekly',by:''},
-  {id:'ev2',title:'Anatomy Revision',days:[1,2,3,4,5],start:'10:00',end:'12:00',color:'#1565a8',catId:'cat_study',note:'',repeat:'weekly',by:''},
-  {id:'ev3',title:'Lunch / Break',days:[1,2,3,4,5],start:'12:00',end:'13:00',color:'#e65100',catId:'cat_break',note:'',repeat:'weekly',by:''},
-  {id:'ev4',title:'Anatomy Notes & Review',days:[1,2,3,4,5],start:'14:00',end:'15:30',color:'#1565a8',catId:'cat_study',note:'',repeat:'weekly',by:''},
-  {id:'ev5',title:'Gym',days:[2,3,4,5],start:'16:00',end:'17:30',color:'#2e7d32',catId:'cat_gym',note:'',repeat:'weekly',by:''},
-  {id:'ev6',title:'Dance Conditioning',days:[2,3,4,5,6],start:'18:00',end:'18:20',color:'#e91e8c',catId:'cat_dance',note:'',repeat:'weekly',by:''},
-  {id:'ev7',title:'Get Ready / Light Review',days:[1],start:'16:00',end:'17:00',color:'#00b4b4',catId:'cat_stretch',note:'',repeat:'weekly',by:''},
-  {id:'ev8',title:'Dance Class',days:[1],start:'17:30',end:'19:00',color:'#e91e8c',catId:'cat_dance',note:'',repeat:'weekly',by:''},
-  {id:'ev9',title:'Cool Down',days:[1],start:'19:15',end:'19:30',color:'#e91e8c',catId:'cat_dance',note:'',repeat:'weekly',by:''},
-  {id:'ev10',title:'Night Stretch',days:[0,1,2,3,4,5,6],start:'21:30',end:'22:00',color:'#00b4b4',catId:'cat_stretch',note:'',repeat:'weekly',by:''},
-  {id:'ev11',title:'Dance Conditioning',days:[6],start:'10:00',end:'11:00',color:'#e91e8c',catId:'cat_dance',note:'',repeat:'weekly',by:''},
-  {id:'ev12',title:'Anatomy Revision',days:[6],start:'14:00',end:'15:30',color:'#1565a8',catId:'cat_study',note:'',repeat:'weekly',by:''},
-  {id:'ev13',title:'Light Anatomy Review',days:[0],start:'10:00',end:'11:00',color:'#1565a8',catId:'cat_study',note:'',repeat:'weekly',by:''},
-  {id:'ev14',title:'Plan the Week',days:[0],start:'14:00',end:'15:00',color:'#6a1b9a',catId:'cat_plan',note:'',repeat:'weekly',by:''},
-  {id:'ev15',title:'Light Mobility (Optional)',days:[0],start:'16:00',end:'16:30',color:'#00b4b4',catId:'cat_stretch',note:'Optional',repeat:'weekly',by:''},
-];
+let events=[];
 
 // ── STATE ──
 let myName='',editingId=null,popupEventId=null,selectedRepeat='weekly',selectedColor='#00b4b4',selectedDays=[1],selectedCatId='';
